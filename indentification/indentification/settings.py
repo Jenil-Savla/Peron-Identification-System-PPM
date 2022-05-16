@@ -37,8 +37,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    #rest
     'rest_framework',
+    'rest_framework.authtoken',
+
+    #myapps
+    'aadhar',
 ]
+
+AUTH_USER_MODEL = 'aadhar.CustomUser'
+
+REST_FRAMEWORK = {
+  'DEFAULT_PERMISSION_CLASSES': (
+      'rest_framework.permissions.IsAuthenticated',
+      'aadhar.views.IsManager',
+  ),
+  'DEFAULT_AUTHENTICATION_CLASSES': (
+      'rest_framework.authentication.TokenAuthentication',
+      'rest_framework.authentication.SessionAuthentication',
+      'rest_framework.authentication.BasicAuthentication',
+  ),
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

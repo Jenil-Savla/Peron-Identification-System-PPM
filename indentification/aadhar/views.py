@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate
+from django.http import JsonResponse
 
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from .models import Address, Bank, CustomUser, Experience, PersonalDetails, Qualification
+
+from .models import Aadhar, Address, Bank, CustomUser, Experience, PersonalDetails, Qualification
 from .serializers import AadharSerializer, AddressSerializer, BankSerializer, ExperienceSerializer, LoginSerializer, PersonalDetailsSerializer, QualificationSerializer, RegisterSerializer
 
 
@@ -52,13 +54,55 @@ class AadharAPI(APIView):
 
     serializer_class = AadharSerializer
 
+    def get(self, request):
+        dict = {}
+        aadhars = Aadhar.objects.filter(active_aadhar = True)
+        dict['active_aadhar'] = aadhars
+        aadhars = Aadhar.objects.filter(active_aadhar = False)
+        dict['non_active_aadhar'] = aadhars
+        return Response(dict, status = status.HTTP_200_OK)
+
     def post(self,request):
-        return Response({'trial' : "demo"},status = status.HTTP_200_OK)
+        serializer = self.serializer_class(data = request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
+
+
+#Renders entire profile by just entering aadhar
+class Profile(APIView):
+
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
+
+    def get(self,request):
+        users = CustomUser.objects.all()
+        serializer = RegisterSerializer(users, many = True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+    def post(self,request):
+        value = request.data['aadhar']
+        try:
+            aadhar = Aadhar.objects.get(aadhar = value)
+            dict = {}
+            user = aadhar.user
+            dict['aadhar_active_status'] = aadhar.active_aadhar
+            dict['user'] = RegisterSerializer(user).data
+            dict['address'] = AddressSerializer(Address.objects.filter(user = user), many = True).data
+            dict['bank'] = BankSerializer(Bank.objects.filter(user = user), many = True).data
+            dict['qualification'] = QualificationSerializer(Qualification.objects.filter(user = user), many = True).data
+            dict['person'] = PersonalDetailsSerializer(PersonalDetails.objects.filter(user = user), many = True).data
+            dict['experience'] = ExperienceSerializer(Experience.objects.filter(user = user), many = True).data
+            return Response(dict, status = status.HTTP_200_OK)
+        except:
+            return Response({'detail' : "No data for this user."}, status=status.HTTP_404_NOT_FOUND)
+        
 
 
 class QualificationListCreateAPI(APIView):
 
     serializer_class = QualificationSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
     query_set = Qualification.objects.all()
 
     def get(self,request):
@@ -77,6 +121,7 @@ class QualificationListCreateAPI(APIView):
 class QualificationRetrieveUpdateDestroy(APIView):
 
     serializer_class = QualificationSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request,pk):
         user = CustomUser.objects.get(id = pk)
@@ -103,6 +148,7 @@ class QualificationRetrieveUpdateDestroy(APIView):
 class AddressListCreateAPI(APIView):
 
     serializer_class = AddressSerializer
+    permission_classes = [IsManager, permissions.IsAuthenticated, ]
     query_set = Address.objects.all()
 
     def get(self,request):
@@ -121,6 +167,7 @@ class AddressListCreateAPI(APIView):
 class AddressRetrieveUpdateDestroy(APIView):
 
     serializer_class = AddressSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request,pk):
         try:
@@ -148,6 +195,7 @@ class BankListCreateAPI(APIView):
 
     serializer_class = BankSerializer
     query_set = Bank.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request):
         queryset = self.query_set
@@ -165,6 +213,7 @@ class BankListCreateAPI(APIView):
 class BankRetrieveUpdateDestroy(APIView):
 
     serializer_class = BankSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request,pk):
         try:
@@ -191,6 +240,7 @@ class BankRetrieveUpdateDestroy(APIView):
 class ExperienceListCreateAPI(APIView):
 
     serializer_class = ExperienceSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
     query_set = Experience.objects.all()
 
     def get(self,request):
@@ -209,6 +259,7 @@ class ExperienceListCreateAPI(APIView):
 class ExperienceRetrieveUpdateDestroy(APIView):
 
     serializer_class = ExperienceSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request,pk):
         try:
@@ -235,6 +286,7 @@ class ExperienceRetrieveUpdateDestroy(APIView):
 class PersonalDetailsListCreateAPI(APIView):
 
     serializer_class = PersonalDetailsSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
     query_set = PersonalDetails.objects.all()
 
     def get(self,request):
@@ -253,6 +305,7 @@ class PersonalDetailsListCreateAPI(APIView):
 class PersonalDetailsRetrieveUpdateDestroy(APIView):
 
     serializer_class = PersonalDetailsSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self,request,pk):
         try:

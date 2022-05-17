@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
 
 #Custom USer Model to handle multiple emails
 class CustomUser(AbstractUser):
-    email = None
+    email = models.CharField(null=True, blank =True, max_length=20)
     is_manager = models.BooleanField(default = False)
 
     REQUIRED_FIELDS=['first_name','last_name']
@@ -54,10 +54,10 @@ class Aadhar(models.Model):
     active_aadhar = models.BooleanField(default = False)
 
     class Meta:
-        ordering = ['user']
+        ordering = ['active_aadhar']
 
     def __str__(self):
-        return self.aadhar
+        return str(self.aadhar)
 
 
 #Address Table
@@ -71,7 +71,7 @@ class Address(models.Model):
         ordering = ['user']
 
     def __str__(self):
-        return self.user + "-" + self.postal_code
+        return str(self.user) + "-" + str(self.postal_code)
 
 
 #Qualifications Table
@@ -85,7 +85,7 @@ class Qualification(models.Model):
         ordering = ['user']
 
     def __str__(self):
-        return self.user + "-" + self.institute
+        return str(self.user) + "-" + self.institute
 
 
 #Bank Details Table
@@ -99,7 +99,7 @@ class Bank(models.Model):
         ordering = ['user']
 
     def __str__(self):
-        return self.user + "-" + self.bank_name
+        return str(self.user) + "-" + self.bank_name
 
 
 
@@ -112,7 +112,7 @@ class EmailAddress(models.Model):
     content_object = GenericForeignKey("content_type","object_id")
 
     def __str__(self):
-        return self.email
+        return str(self.email)
 
 
 #One to Many relationship between Personal detials and phone number
@@ -154,4 +154,4 @@ class Experience(models.Model):
         ordering = ['user']
 
     def __str__(self):
-        return self.user + "-" + self.company_name
+        return str(self.user) + "-" + self.company_name

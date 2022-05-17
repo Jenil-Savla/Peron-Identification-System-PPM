@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, Aadhar, Address, Qualification, Bank, PersonalDetails, EmailAddress, PhoneNumber, Experience
 
-admin.site.register(CustomUser, UserAdmin)
+admin.site.register(CustomUser)
 admin.site.register(Aadhar)
 admin.site.register(Address)
 admin.site.register(Qualification)

@@ -40,25 +40,28 @@ class LoginAPI(APIView):
     permission_classes = [permissions.AllowAny, ]
     
     def post(self,request):
-        email = request.data.get('email',None)
+        username = request.data.get('username',None)
         password = request.data.get('password',None)
-        user = authenticate(email = email, password = password)
+        user = authenticate(username = username, password = password)
+        print(user)
         if user :
+            print(user)
             serializer = self.serializer_class(user)
             token = Token.objects.get(user=user)
-            return Response({'token' : token.key,'email' : user.email},status = status.HTTP_200_OK)
+            return Response({'token' : token.key,'username' : user.username, 'id' : user.id},status = status.HTTP_200_OK)
         return Response('Invalid Credentials',status = status.HTTP_404_NOT_FOUND)
 
 
 class AadharAPI(APIView):
 
     serializer_class = AadharSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManager, ]
 
     def get(self, request):
         dict = {}
-        aadhars = Aadhar.objects.filter(active_aadhar = True)
+        aadhars = self.serializer_class(Aadhar.objects.filter(active_aadhar = True), many = True).data
         dict['active_aadhar'] = aadhars
-        aadhars = Aadhar.objects.filter(active_aadhar = False)
+        aadhars = self.serializer_class(Aadhar.objects.filter(active_aadhar = False), many = True).data
         dict['non_active_aadhar'] = aadhars
         return Response(dict, status = status.HTTP_200_OK)
 
@@ -136,7 +139,10 @@ class QualificationRetrieveUpdateDestroy(APIView):
         user = CustomUser.objects.get(id = pk)
         object = Qualification.objects.get(user = user)
         serializer = self.serializer_class(object, data = request.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors)
 
     def delete(self,request,pk):
         user = CustomUser.objects.get(id = pk)
@@ -182,7 +188,10 @@ class AddressRetrieveUpdateDestroy(APIView):
         user = CustomUser.objects.get(pk =pk)
         object = Address.objects.get(user = user)
         serializer = self.serializer_class(object, data = request.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors)
 
     def delete(self,request,pk):
         user = CustomUser.objects.get(pk =pk)
@@ -228,7 +237,10 @@ class BankRetrieveUpdateDestroy(APIView):
         user = CustomUser.objects.get(pk=pk)
         object = Bank.objects.get(user=user)
         serializer = self.serializer_class(object, data = request.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors)
 
     def delete(self,request,pk):
         user = CustomUser.objects.get(pk=pk)
@@ -274,7 +286,10 @@ class ExperienceRetrieveUpdateDestroy(APIView):
         user = CustomUser.objects.get(pk=pk)
         object = Experience.objects.get(user=user)
         serializer = self.serializer_class(object, data = request.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors)
 
     def delete(self,request,pk):
         user = CustomUser.objects.get(pk=pk)

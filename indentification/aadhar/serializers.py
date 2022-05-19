@@ -69,7 +69,7 @@ class EmailAddressSerializer(serializers.ModelSerializer):
 
     def validate(self,attrs):
         email = attrs.get('email',' ')
-        if email not in email_pattern:
+        if not email_pattern.match(email):
             raise serializers.ValidationError('Please enter a valid email')
         return attrs
         
